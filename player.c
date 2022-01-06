@@ -3,6 +3,7 @@
 #include "regexp.h"
 
 int main() {
-  printf("Hello\n");
+  Regexp *regexp = regexpCompile("Hello |S| there! |N?| YAY");
+  regexpPrint(regexp, stdout);
   return 0;
 }

@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include <stdio.h>
+
 typedef enum {
   REGEXP_STRING,
   REGEXP_WILDCARD,
@@ -24,6 +26,8 @@ bool regexpMatch(const char *str, Regexp *regexp,
                  RegexpMatchFunction matchFunction, void *context);
 
 Regexp *regexpCompile(const char *str);
+
+void regexpPrint(Regexp *regexp, FILE *out);
 
 void regexpFree(Regexp *regexp);
 
