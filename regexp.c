@@ -93,7 +93,7 @@ bool regexpMatch(const char *str, Regexp *regexp,
     switch (regexp->type) {
     case REGEXP_NUMBER: {
       const char *endStr = 0;
-      long value = strtol(temp, (char**)&endStr, 10);
+      long value = strtol(temp, (char **)&endStr, 10);
       if (endStr == temp) {
         if (!regexp->optional) {
           return false;
@@ -127,7 +127,7 @@ bool regexpMatch(const char *str, Regexp *regexp,
       } else {
         temp += strlen(regexp->string);
         regexp = regexp->next;
-        continue;  // Don't increment i
+        continue; // Don't increment i
       }
     }
     }
