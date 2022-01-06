@@ -1,5 +1,6 @@
 #include "regexp.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,8 +12,8 @@ Regexp *regexpCompile(const char *str) {
   do {
     if (*temp == '|') {
       switch (*++temp) {
-      case 'S': {
-        next->type = REGEXP_WILDCARD;
+      case 'W': {
+        next->type = REGEXP_WORD;
         break;
       }
       case 'N': {
@@ -21,7 +22,7 @@ Regexp *regexpCompile(const char *str) {
       }
       default:
         fprintf(stderr, "Unknown regexp specifier %c\n", *temp);
-        next->type = REGEXP_WILDCARD;
+        next->type = REGEXP_WORD;
         break;
       }
       if (*++temp == '?') {
@@ -58,28 +59,80 @@ Regexp *regexpCompile(const char *str) {
 }
 
 void regexpPrint(Regexp *regexp, FILE *out) {
-    while (regexp != 0) {
-        switch (regexp->type) {
-            case REGEXP_STRING: {
-              fprintf(out, "\"%s\"", regexp->string);
-              break;
-            }
-            case REGEXP_WILDCARD: {
-              fprintf(out, "wildcard");
-              break;
-            }
-            case REGEXP_NUMBER: {
-              fprintf(out, "number");
-              break;
-            }
-            default:
-              fprintf(out, "unknown: %d", regexp->type);
-              break;
-        }
-        if (regexp->optional) {
-          fprintf(out, " (optional)");
-        }
-        putc('\n', out);
-        regexp = regexp->next;
+  while (regexp != 0) {
+    switch (regexp->type) {
+    case REGEXP_STRING: {
+      fprintf(out, "\"%s\"", regexp->string);
+      break;
     }
+    case REGEXP_WORD: {
+      fprintf(out, "word");
+      break;
+    }
+    case REGEXP_NUMBER: {
+      fprintf(out, "number");
+      break;
+    }
+    default:
+      fprintf(out, "unknown: %d", regexp->type);
+      break;
+    }
+    if (regexp->optional) {
+      fprintf(out, " (optional)");
+    }
+    putc('\n', out);
+    regexp = regexp->next;
+  }
+}
+
+bool regexpMatch(const char *str, Regexp *regexp,
+                 RegexpMatchFunction matchFunction, void *context) {
+  const char *temp = str;
+  int i = 0;
+  while (regexp != 0) {
+    switch (regexp->type) {
+    case REGEXP_NUMBER: {
+      const char *endStr = 0;
+      long value = strtol(temp, (char**)&endStr, 10);
+      if (endStr == temp) {
+        if (!regexp->optional) {
+          return false;
+        }
+      } else {
+        matchFunction(&value, i, context);
+      }
+      temp = endStr;
+      break;
+    }
+    case REGEXP_WORD: {
+      // Get size of the word
+      int len;
+      for (len = 0; !isspace(temp[len]); len++)
+        ;
+      if (len == 0) {
+        if (!regexp->optional) {
+          return false;
+        }
+      } else {
+        char word[len + 1];
+        strncpy(word, temp, len);
+        matchFunction(word, i, context);
+      }
+      temp += len;
+      break;
+    }
+    case REGEXP_STRING: {
+      if (strncmp(temp, regexp->string, strlen(regexp->string)) != 0) {
+        return false;
+      } else {
+        temp += strlen(regexp->string);
+        regexp = regexp->next;
+        continue;  // Don't increment i
+      }
+    }
+    }
+    i++;
+    regexp = regexp->next;
+  }
+  return true;
 }

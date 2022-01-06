@@ -5,11 +5,7 @@
 
 #include <stdio.h>
 
-typedef enum {
-  REGEXP_STRING,
-  REGEXP_WILDCARD,
-  REGEXP_NUMBER
-} RegexpComponentType;
+typedef enum { REGEXP_STRING, REGEXP_WORD, REGEXP_NUMBER } RegexpComponentType;
 
 typedef struct RegexpComponent {
   RegexpComponentType type;
